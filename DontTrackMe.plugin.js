@@ -2,7 +2,7 @@
  * @name DontTrackMe
  * @author HideakiAtsuyo
  * @authorId 963506730141093909
- * @version 1.0.1
+ * @version 1.0.2
  * @description Allows you to block Discord tracking
  * @donate https://www.paypal.me/HideakiAtsuyoLmao
  * @website https://github.com/HideakiAtsuyo
@@ -18,7 +18,7 @@ class DontTrackMe {
             name: "DontTrackMe",
             shortName: "DTM",
             description: "Prevent Tracking & Monitoring ",
-            version: "1.0.1",
+            version: "1.0.2",
             author: "Hideaki Atsuyo"
         }
     }
@@ -68,7 +68,7 @@ class DontTrackMe {
         // a bit unrelated but shut up flux
         console.log = (...args) => {
             if (typeof args[0] === 'string' && args[0].includes('[Flux]')) return;
-            window.__$$DoNotTrackCache.oldConsoleLog(console, ...args);
+            window.__$$DoNotTrackCache.oldConsoleLog.call(console, ...args);
         };
     }
 
