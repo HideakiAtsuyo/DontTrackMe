@@ -6,8 +6,8 @@
  * @description Allows you to block Discord tracking
  * @donate https://www.paypal.me/HideakiAtsuyoLmao
  * @website https://github.com/HideakiAtsuyo
- * @source *
- * @updateUrl *
+ * @source https://github.com/HideakiAtsuyo/DontTrackMe/tree/plugin/
+ * @updateUrl https://raw.githubusercontent.com/HideakiAtsuyo/DontTrackMe/plugin/DontTrackMe.plugin.js
  */
 
 class DontTrackMe {
@@ -17,7 +17,7 @@ class DontTrackMe {
         this.config = {
             name: "DontTrackMe",
             shortName: "DTM",
-            description: "",
+            description: "Prevent Tracking & Monitoring ",
             version: "1.0.0",
             author: "Hideaki Atsuyo"
         }
@@ -47,11 +47,12 @@ class DontTrackMe {
 
     // Load/Unload
     async load() {
-        window.oldConsoleLog = console.log
-        const Reporter = await BdApi.findModuleByProps("submitLiveCrashReport");
-        Reporter["submitLiveCrashReport"] = () => void 0;
+        window.oldConsoleLog = console.log;
 
+        const Reporter = await BdApi.findModuleByProps("submitLiveCrashReport");
         const AnalyticsMarker = await BdApi.findModuleByProps("analyticsTrackingStoreMaker");
+
+        Reporter["submitLiveCrashReport"] = () => void 0;
         AnalyticsMarker["AnalyticsActionHandlers"]["handleTrack"] = () => void 0;
 
         window.__SENTRY__.hub.addBreadcrumb = () => void 0;
@@ -60,10 +61,7 @@ class DontTrackMe {
 
         // a bit unrelated but shut up flux
         console.log = (...args) => {
-            if (typeof args[0] === 'string' && args[0].includes('[Flux]')) {
-                return;
-            }
-
+            if (typeof args[0] === 'string' && args[0].includes('[Flux]')) return;
             window.oldConsoleLog.call(console, ...args);
         };
     }
