@@ -2,7 +2,7 @@
  * @name DontTrackMe
  * @author HideakiAtsuyo
  * @authorId 963506730141093909
- * @version 1.0.0
+ * @version 1.0.1
  * @description Allows you to block Discord tracking
  * @donate https://www.paypal.me/HideakiAtsuyoLmao
  * @website https://github.com/HideakiAtsuyo
@@ -18,7 +18,7 @@ class DontTrackMe {
             name: "DontTrackMe",
             shortName: "DTM",
             description: "Prevent Tracking & Monitoring ",
-            version: "1.0.0",
+            version: "1.0.1",
             author: "Hideaki Atsuyo"
         }
     }
@@ -47,22 +47,28 @@ class DontTrackMe {
 
     // Load/Unload
     async load() {
-        window.oldConsoleLog = console.log;
+        window.__$$DoNotTrackCache = {};
 
         const Reporter = await BdApi.findModuleByProps("submitLiveCrashReport");
-        const AnalyticsMarker = await BdApi.findModuleByProps("analyticsTrackingStoreMaker");
+        const AnalyticsMaker = await BdApi.findModuleByProps("analyticsTrackingStoreMaker");
+
+        window.__$$DoNotTrackCache.oldSubmitLiveCrashReport = Reporter.submitLiveCrashReport;
+        window.__$$DoNotTrackCache.oldAddBreadcrumb = window.__SENTRY__.hub.addBreadcrumb;
+        window.__$$DoNotTrackCache.oldHandleTrack = AnalyticsMaker.AnalyticsActionHandlers.handleTrack;
 
         Reporter["submitLiveCrashReport"] = () => void 0;
-        AnalyticsMarker["AnalyticsActionHandlers"]["handleTrack"] = () => void 0;
-
+        AnalyticsMaker["AnalyticsActionHandlers"]["handleTrack"] = () => void 0;
         window.__SENTRY__.hub.addBreadcrumb = () => void 0;
         window.__SENTRY__.hub.getClient().close();
         window.__SENTRY__.hub.getScope().clear();
 
+
+        window.__$$DoNotTrackCache.oldConsoleLog = console.log;
+
         // a bit unrelated but shut up flux
         console.log = (...args) => {
             if (typeof args[0] === 'string' && args[0].includes('[Flux]')) return;
-            window.oldConsoleLog.call(console, ...args);
+            window.__$$DoNotTrackCache.oldConsoleLog(console, ...args);
         };
     }
 
@@ -79,7 +85,17 @@ class DontTrackMe {
         this.initialize();
     }
 
-    stop() { };
+    async stop() {
+        console.log("OK STOP")
+        const Reporter = await BdApi.findModuleByProps("submitLiveCrashReport");
+        const AnalyticsMaker = await BdApi.findModuleByProps("analyticsTrackingStoreMaker");
+        Reporter.submitLiveCrashReport = window.__$$DoNotTrackCache.oldSubmitLiveCrashReport;
+        window.__SENTRY__.hub.addBreadcrumb = window.__$$DoNotTrackCache.oldAddBreadcrumb;
+        AnalyticsMaker.AnalyticsActionHandlers.handleTrack = window.__$$DoNotTrackCache.oldHandleTrack;
+        console.log = window.__$$DoNotTrackCache.oldConsoleLog;
+
+        delete window.__$$DoNotTrackCache;
+    };
 
     //  Initialize
     initialize() {
